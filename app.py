@@ -242,7 +242,7 @@ class MainWindow(QWidget):
         """
         )
         print_button.clicked.connect(
-            self.imprimir_recibo_con_qpainter
+            self.imprimir_comanda
         )  # Conectar al método de impresión
         self.right_layout.addWidget(print_button, alignment=Qt.AlignCenter)
 
@@ -250,7 +250,7 @@ class MainWindow(QWidget):
         self.main_layout.addWidget(self.left_widget, 1)
         self.main_layout.addLayout(self.right_layout, 1)
 
-    def imprimir_recibo_con_qpainter(self):
+    def imprimir_comanda(self):
         selected_printer_name = self.printer_combo.currentText()
         if not selected_printer_name:
             print("No se ha seleccionado una impresora.")
