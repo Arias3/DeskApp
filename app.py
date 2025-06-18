@@ -12,7 +12,7 @@ from PyQt5.QtGui import QTextDocument
 from PyQt5.QtWidgets import QPushButton
 from jinja2 import Template
 from PyQt5.QtGui import QPainter, QFont
-
+import datetime
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -256,131 +256,21 @@ class MainWindow(QWidget):
             print("No se ha seleccionado una impresora.")
             return
 
+        # Obtener fecha y hora actual del sistema
+        ahora = datetime.datetime.now()
+        fecha_actual = ahora.strftime("%Y-%m-%d")
+        hora_actual = ahora.strftime("%H:%M")
+
         # Datos de prueba
         datos = {
             "numero": "0068",
-            "fecha": "2025-06-18",
-            "hora": "16:45",
+            "fecha": fecha_actual,   # Usar fecha actual
+            "hora": hora_actual,     # Usar hora actual
             "items": [
                 {
                     "nombre": "Helado Mixto",
                     "sabores": "Fresa - Limón - Vainilla",
                     "notas": "Pedir con cono doble, extra topping de chispas",
-                },
-                {
-                    "nombre": "Malteada de Oreo",
-                    "sabores": "Chocolate - Oreo",
-                    "notas": "Sin azúcar, con leche deslactosada, vaso grande",
-                },
-                {
-                    "nombre": "Copa Tropical",
-                    "sabores": "Mango - Maracuyá",
-                    "notas": "Agregar trozos de piña, servir con cuchara larga",
-                },
-                {
-                    "nombre": "Brownie con Helado",
-                    "sabores": "Chocolate amargo - Vainilla",
-                    "notas": "Calentar 20s, con almendras y sirope adicional",
-                },
-                {
-                    "nombre": "Banana Split",
-                    "sabores": "Fresa - Chocolate - Vainilla",
-                    "notas": "Poca crema, sin nueces, empaque para llevar",
-                },
-                {
-                    "nombre": "Café Capuchino",
-                    "sabores": "Clásico",
-                    "notas": "Con leche entera, sin espuma, 1 sobre de azúcar",
-                },
-                                {
-                    "nombre": "Helado Mixto",
-                    "sabores": "Fresa - Limón - Vainilla",
-                    "notas": "Pedir con cono doble, extra topping de chispas",
-                },
-                {
-                    "nombre": "Malteada de Oreo",
-                    "sabores": "Chocolate - Oreo",
-                    "notas": "Sin azúcar, con leche deslactosada, vaso grande",
-                },
-                {
-                    "nombre": "Copa Tropical",
-                    "sabores": "Mango - Maracuyá",
-                    "notas": "Agregar trozos de piña, servir con cuchara larga",
-                },
-                {
-                    "nombre": "Brownie con Helado",
-                    "sabores": "Chocolate amargo - Vainilla",
-                    "notas": "Calentar 20s, con almendras y sirope adicional",
-                },
-                {
-                    "nombre": "Banana Split",
-                    "sabores": "Fresa - Chocolate - Vainilla",
-                    "notas": "Poca crema, sin nueces, empaque para llevar",
-                },
-                {
-                    "nombre": "Café Capuchino",
-                    "sabores": "Clásico",
-                    "notas": "Con leche entera, sin espuma, 1 sobre de azúcar",
-                },
-                                {
-                    "nombre": "Helado Mixto",
-                    "sabores": "Fresa - Limón - Vainilla",
-                    "notas": "Pedir con cono doble, extra topping de chispas",
-                },
-                {
-                    "nombre": "Malteada de Oreo",
-                    "sabores": "Chocolate - Oreo",
-                    "notas": "Sin azúcar, con leche deslactosada, vaso grande",
-                },
-                {
-                    "nombre": "Copa Tropical",
-                    "sabores": "Mango - Maracuyá",
-                    "notas": "Agregar trozos de piña, servir con cuchara larga",
-                },
-                {
-                    "nombre": "Brownie con Helado",
-                    "sabores": "Chocolate amargo - Vainilla",
-                    "notas": "Calentar 20s, con almendras y sirope adicional",
-                },
-                {
-                    "nombre": "Banana Split",
-                    "sabores": "Fresa - Chocolate - Vainilla",
-                    "notas": "Poca crema, sin nueces, empaque para llevar",
-                },
-                {
-                    "nombre": "Café Capuchino",
-                    "sabores": "Clásico",
-                    "notas": "Con leche entera, sin espuma, 1 sobre de azúcar",
-                },
-                                {
-                    "nombre": "Helado Mixto",
-                    "sabores": "Fresa - Limón - Vainilla",
-                    "notas": "Pedir con cono doble, extra topping de chispas",
-                },
-                {
-                    "nombre": "Malteada de Oreo",
-                    "sabores": "Chocolate - Oreo",
-                    "notas": "Sin azúcar, con leche deslactosada, vaso grande",
-                },
-                {
-                    "nombre": "Copa Tropical",
-                    "sabores": "Mango - Maracuyá",
-                    "notas": "Agregar trozos de piña, servir con cuchara larga",
-                },
-                {
-                    "nombre": "Brownie con Helado",
-                    "sabores": "Chocolate amargo - Vainilla",
-                    "notas": "Calentar 20s, con almendras y sirope adicional",
-                },
-                {
-                    "nombre": "Banana Split",
-                    "sabores": "Fresa - Chocolate - Vainilla",
-                    "notas": "Poca crema, sin nueces, empaque para llevar",
-                },
-                {
-                    "nombre": "Café Capuchino",
-                    "sabores": "Clásico",
-                    "notas": "Con leche entera, sin espuma, 1 sobre de azúcar",
                 },
             ],
         }
