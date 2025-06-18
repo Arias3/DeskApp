@@ -322,6 +322,66 @@ class MainWindow(QWidget):
                     "sabores": "Clásico",
                     "notas": "Con leche entera, sin espuma, 1 sobre de azúcar",
                 },
+                                {
+                    "nombre": "Helado Mixto",
+                    "sabores": "Fresa - Limón - Vainilla",
+                    "notas": "Pedir con cono doble, extra topping de chispas",
+                },
+                {
+                    "nombre": "Malteada de Oreo",
+                    "sabores": "Chocolate - Oreo",
+                    "notas": "Sin azúcar, con leche deslactosada, vaso grande",
+                },
+                {
+                    "nombre": "Copa Tropical",
+                    "sabores": "Mango - Maracuyá",
+                    "notas": "Agregar trozos de piña, servir con cuchara larga",
+                },
+                {
+                    "nombre": "Brownie con Helado",
+                    "sabores": "Chocolate amargo - Vainilla",
+                    "notas": "Calentar 20s, con almendras y sirope adicional",
+                },
+                {
+                    "nombre": "Banana Split",
+                    "sabores": "Fresa - Chocolate - Vainilla",
+                    "notas": "Poca crema, sin nueces, empaque para llevar",
+                },
+                {
+                    "nombre": "Café Capuchino",
+                    "sabores": "Clásico",
+                    "notas": "Con leche entera, sin espuma, 1 sobre de azúcar",
+                },
+                                {
+                    "nombre": "Helado Mixto",
+                    "sabores": "Fresa - Limón - Vainilla",
+                    "notas": "Pedir con cono doble, extra topping de chispas",
+                },
+                {
+                    "nombre": "Malteada de Oreo",
+                    "sabores": "Chocolate - Oreo",
+                    "notas": "Sin azúcar, con leche deslactosada, vaso grande",
+                },
+                {
+                    "nombre": "Copa Tropical",
+                    "sabores": "Mango - Maracuyá",
+                    "notas": "Agregar trozos de piña, servir con cuchara larga",
+                },
+                {
+                    "nombre": "Brownie con Helado",
+                    "sabores": "Chocolate amargo - Vainilla",
+                    "notas": "Calentar 20s, con almendras y sirope adicional",
+                },
+                {
+                    "nombre": "Banana Split",
+                    "sabores": "Fresa - Chocolate - Vainilla",
+                    "notas": "Poca crema, sin nueces, empaque para llevar",
+                },
+                {
+                    "nombre": "Café Capuchino",
+                    "sabores": "Clásico",
+                    "notas": "Con leche entera, sin espuma, 1 sobre de azúcar",
+                },
             ],
         }
 
@@ -405,7 +465,7 @@ class MainWindow(QWidget):
 
         # === Conversión precisa de píxeles a milímetros ===
         dpi = pixmap_virtual.logicalDpiY()
-        alto_mm = max(60, int((y / dpi) * 20.4) + 1)
+        alto_mm = max(60, int((y / dpi) * 21.4) + 1)
 
         # ========== PASO 2: CONFIGURAR IMPRESORA ==========
         printer = QPrinter()
@@ -427,7 +487,7 @@ class MainWindow(QWidget):
         y = 30
 
         try:
-            logo = QPixmap(logo_path).scaledToWidth(60, Qt.SmoothTransformation)
+            logo = QPixmap(logo_path).scaledToWidth(100, Qt.SmoothTransformation)
             x_logo = (ancho_papel - logo.width()) // 2
             painter.drawPixmap(x_logo, int(y), logo)
             y += logo.height() + 20
@@ -436,9 +496,12 @@ class MainWindow(QWidget):
             y += 20
 
         # ORDEN
-        painter.setFont(QFont("Courier New", 11, QFont.Bold))
-        painter.drawText(0, int(y), f"ORDEN #{datos['numero']}")
-        y += 20
+        painter.setFont(QFont("Courier New", 15, QFont.Bold))
+        orden_text = f"ORDEN #{datos['numero']}"
+        orden_rect = QRectF(0, y, ancho_papel, 9999)
+        painter.drawText(orden_rect, Qt.AlignHCenter | Qt.TextWordWrap, orden_text)
+        orden_height = painter.boundingRect(orden_rect, Qt.AlignHCenter | Qt.TextWordWrap, orden_text).height()
+        y += orden_height + 4
 
         # FECHA HORA
         painter.setFont(QFont("Courier New", 8))
