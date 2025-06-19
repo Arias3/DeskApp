@@ -4,15 +4,20 @@ import webbrowser
 import qrcode
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLabel
 from PyQt5.QtCore import Qt, QSizeF, QRectF
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtPrintSupport import QPrinterInfo
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtGui import QTextDocument
 from PyQt5.QtWidgets import QPushButton
 from jinja2 import Template
-from PyQt5.QtGui import QPainter, QFont
 import datetime
+import json
+import threading
+import websockets
+import asyncio
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import QIcon
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -33,8 +38,15 @@ def generar_qr(data, filename="qr.png"):
 
 
 class MainWindow(QWidget):
+
+    imprimir_signal = pyqtSignal(dict)
+
     def __init__(self):
         super().__init__()
+
+        self.setWindowIcon(QIcon("./assets/logo.ico"))
+        self.iniciar_servidor_websocket("localhost", 5000)
+        self.imprimir_signal.connect(self.imprimir_comanda)
 
         self.setFixedSize(800, 500)
         self.setWindowTitle("MesApp")
@@ -84,6 +96,7 @@ class MainWindow(QWidget):
         )
         status_label.setAlignment(Qt.AlignCenter)
         self.left_layout.addWidget(status_label)
+
 
         # Obtener IP del dispositivo
         local_ip = get_local_ip()
@@ -224,6 +237,21 @@ class MainWindow(QWidget):
 
         self.right_layout.addSpacing(24)
 
+        # Datos de prueba con fecha actual
+        ahora = datetime.datetime.now()
+        datos_prueba = {
+            "numero": "0001",
+            "fecha": ahora.strftime("%Y-%m-%d"),
+            "hora": ahora.strftime("%H:%M"),
+            "items": [
+                {
+                    "nombre": "Helado Mixto",
+                    "sabores": "Fresa - Limón - Vainilla",
+                    "notas": "Pedir con cono doble, extra topping de chispas",
+                },
+            ],
+        }
+
         # Botón de imprimir
         print_button = QPushButton("Imprimir Prueba")
         print_button.setFixedSize(200, 50)
@@ -241,39 +269,46 @@ class MainWindow(QWidget):
             }
         """
         )
-        print_button.clicked.connect(
-            self.imprimir_comanda
-        )  # Conectar al método de impresión
+        print_button.clicked.connect(lambda: self.imprimir_comanda(datos_prueba))
         self.right_layout.addWidget(print_button, alignment=Qt.AlignCenter)
 
         # Agregar los widgets al layout principal
         self.main_layout.addWidget(self.left_widget, 1)
         self.main_layout.addLayout(self.right_layout, 1)
 
-    def imprimir_comanda(self):
+    def iniciar_servidor_websocket(self, host="localhost", puerto=5000):
+        async def manejador(websocket):
+            print(f"🟢 Cliente conectado desde {websocket.remote_address}")
+            try:
+                async for mensaje in websocket:
+                    print(f"📨 Mensaje recibido: {mensaje}")
+                    try:
+                        datos = json.loads(mensaje)
+                        if all(k in datos for k in ["numero", "fecha", "hora", "items"]):
+                            self.imprimir_signal.emit(datos)
+                        else:
+                            print("❌ Datos incompletos, se ignora el mensaje.")
+                    except Exception as e:
+                        print(f"❌ Error procesando mensaje: {e}")
+            except websockets.ConnectionClosed:
+                print("🔌 Cliente desconectado.")
+
+        async def iniciar():
+            print(f"🌐 Iniciando servidor WebSocket en ws://{host}:{puerto} ...")
+            async with websockets.serve(manejador, host, puerto, process_request=None):  
+                await asyncio.Future()  # mantener corriendo
+
+        def run_loop():
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            asyncio.get_event_loop().run_until_complete(iniciar())
+
+        threading.Thread(target=run_loop, daemon=True).start()
+    @pyqtSlot(dict)
+    def imprimir_comanda(self, datos):
         selected_printer_name = self.printer_combo.currentText()
         if not selected_printer_name:
             print("No se ha seleccionado una impresora.")
             return
-
-        # Obtener fecha y hora actual del sistema
-        ahora = datetime.datetime.now()
-        fecha_actual = ahora.strftime("%Y-%m-%d")
-        hora_actual = ahora.strftime("%H:%M")
-
-        # Datos de prueba
-        datos = {
-            "numero": "0068",
-            "fecha": fecha_actual,   # Usar fecha actual
-            "hora": hora_actual,     # Usar hora actual
-            "items": [
-                {
-                    "nombre": "Helado Mixto",
-                    "sabores": "Fresa - Limón - Vainilla",
-                    "notas": "Pedir con cono doble, extra topping de chispas",
-                },
-            ],
-        }
 
         # ========== PASO 1: CALCULAR ALTO REAL DEL CONTENIDO ==========
         from PyQt5.QtGui import QPixmap, QPainter, QFont
@@ -355,13 +390,12 @@ class MainWindow(QWidget):
 
         # === Conversión precisa de píxeles a milímetros ===
         dpi = pixmap_virtual.logicalDpiY()
-        alto_mm = max(60, int((y / dpi) * 21.4) + 1)
+        alto_mm = max(60, int((y / dpi) * 22) + 1)
 
         # ========== PASO 2: CONFIGURAR IMPRESORA ==========
         printer = QPrinter()
         printer.setPrinterName(selected_printer_name)
-        printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setOutputFileName("factura_qpainter_custom.pdf")
+        printer.setOutputFormat(QPrinter.NativeFormat)
         printer.setPageSize(QPrinter.Custom)
         printer.setPaperSize(QSizeF(58, alto_mm), QPrinter.Millimeter)
         printer.setFullPage(True)
@@ -390,7 +424,9 @@ class MainWindow(QWidget):
         orden_text = f"ORDEN #{datos['numero']}"
         orden_rect = QRectF(0, y, ancho_papel, 9999)
         painter.drawText(orden_rect, Qt.AlignHCenter | Qt.TextWordWrap, orden_text)
-        orden_height = painter.boundingRect(orden_rect, Qt.AlignHCenter | Qt.TextWordWrap, orden_text).height()
+        orden_height = painter.boundingRect(
+            orden_rect, Qt.AlignHCenter | Qt.TextWordWrap, orden_text
+        ).height()
         y += orden_height + 4
 
         # FECHA HORA
