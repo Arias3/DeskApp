@@ -243,6 +243,7 @@ class MainWindow(QWidget):
             "numero": "0001",
             "fecha": ahora.strftime("%Y-%m-%d"),
             "hora": ahora.strftime("%H:%M"),
+            "Mesa": "Mesa 1",
             "items": [
                 {
                     "nombre": "Helado Mixto",
@@ -316,7 +317,7 @@ class MainWindow(QWidget):
 
         ancho_virtual = int(58 * 3.78)  # fuerza a int directamente
 
-        y = 30  # Espacio superior inicial
+        y = 10  # Espacio superior inicial
         logo_path = "./assets/capri.png"
         logo_height = 0
 
@@ -352,6 +353,14 @@ class MainWindow(QWidget):
                 f"Fecha: {datos['fecha']}   Hora: {datos['hora']}",
             ).height()
             + 8
+        )
+
+        medidor.setFont(QFont("Courier New", 11, QFont.Bold))
+        y += (
+            medidor.boundingRect(
+                0, 0, ancho_virtual, 9999, Qt.TextWordWrap, f"Mesa: {datos['Mesa']}"
+            ).height()
+            + 4
         )
 
         y += 10  # Línea divisoria
@@ -433,6 +442,15 @@ class MainWindow(QWidget):
         painter.setFont(QFont("Courier New", 8))
         painter.drawText(0, int(y), f"Fecha: {datos['fecha']}   Hora: {datos['hora']}")
         y += 15
+
+        painter.setFont(QFont("Courier New", 11, QFont.Bold))
+        mesa_text = f"Mesa: {datos['Mesa']}"
+        mesa_rect = QRectF(0, y, ancho_papel, 9999)
+        painter.drawText(mesa_rect, Qt.AlignHCenter | Qt.TextWordWrap, mesa_text)
+        mesa_height = painter.boundingRect(
+            mesa_rect, Qt.AlignHCenter | Qt.TextWordWrap, mesa_text
+        ).height()
+        y += mesa_height + 4
 
         # LINEA
         painter.drawLine(0, int(y), int(ancho_papel), int(y))
