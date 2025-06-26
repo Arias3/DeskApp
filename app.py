@@ -18,6 +18,7 @@ import asyncio
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QIcon
+import winsound
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -45,7 +46,7 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.setWindowIcon(QIcon("./assets/logo.ico"))
-        self.iniciar_servidor_websocket("localhost", 5000)
+        self.iniciar_servidor_websocket("localhost", 3000)
         self.imprimir_signal.connect(self.imprimir_comanda)
 
         self.setFixedSize(800, 500)
@@ -277,7 +278,7 @@ class MainWindow(QWidget):
         self.main_layout.addWidget(self.left_widget, 1)
         self.main_layout.addLayout(self.right_layout, 1)
 
-    def iniciar_servidor_websocket(self, host="localhost", puerto=5000):
+    def iniciar_servidor_websocket(self, host="localhost", puerto=3000):
         async def manejador(websocket):
             print(f"🟢 Cliente conectado desde {websocket.remote_address}")
             try:
@@ -306,6 +307,7 @@ class MainWindow(QWidget):
         threading.Thread(target=run_loop, daemon=True).start()
     @pyqtSlot(dict)
     def imprimir_comanda(self, datos):
+
         selected_printer_name = self.printer_combo.currentText()
         if not selected_printer_name:
             print("No se ha seleccionado una impresora.")
@@ -485,6 +487,8 @@ class MainWindow(QWidget):
             y += 12
 
         painter.end()
+        winsound.PlaySound("./assets/notification.wav", winsound.SND_FILENAME)
+
         print(f"✅ Factura generada con alto dinámico: {alto_mm} mm")
 
 
