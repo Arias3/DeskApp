@@ -19,6 +19,13 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QIcon
 import winsound
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Carga las variables del archivo .env
+
+WS_HOST = os.getenv("WS_HOST", "localhost")
+WS_PORT = int(os.getenv("WS_PORT", 3000))
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -46,7 +53,7 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.setWindowIcon(QIcon("./assets/logo.ico"))
-        self.iniciar_servidor_websocket("localhost", 3000)
+        self.iniciar_servidor_websocket(WS_HOST, WS_PORT)
         self.imprimir_signal.connect(self.imprimir_comanda)
 
         self.setFixedSize(800, 500)
