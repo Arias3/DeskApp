@@ -131,30 +131,29 @@ def actualizar_envs(ip):
 
 
 def iniciar_servidores():
-    # Ruta absoluta a los proyectos
     base_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "MesAPP", "MesAPP")
     )
 
-    # Iniciar Backend
     backend_dir = os.path.join(base_dir, "Backend")
-    subprocess.Popen(
+    backend_proc = subprocess.Popen(
         ["npm", "run", "dev", "--", "--host"],
         cwd=backend_dir,
         shell=True,
-        creationflags=subprocess.CREATE_NEW_CONSOLE,  # Abre nueva ventana en Windows
+        creationflags=subprocess.CREATE_NEW_CONSOLE,
     )
     print("🌐 Servidor Backend iniciado en", backend_dir)
 
-    # Iniciar Frontend
     frontend_dir = os.path.join(base_dir, "Frontend")
-    subprocess.Popen(
+    frontend_proc = subprocess.Popen(
         ["npm", "run", "dev", "--", "--host"],
         cwd=frontend_dir,
         shell=True,
         creationflags=subprocess.CREATE_NEW_CONSOLE,
     )
     print("🌐 Servidor Frontend iniciado en", frontend_dir)
+
+    return backend_proc, frontend_proc
 
 
 class MainWindow(QWidget):
@@ -219,7 +218,7 @@ class MainWindow(QWidget):
         # Obtener IP del dispositivo
         url = f"http://{local_ip}:5173"
         generar_qr(url, "qr.png")
-        # webbrowser.open(url)
+        webbrowser.open(url)
 
         # Contenedor tipo label con estilo y enlace HTML
         url_label = QLabel(f'<a href="{url}">{url}</a>')
@@ -640,20 +639,17 @@ class MainWindow(QWidget):
 if __name__ == "__main__":
     local_ip = get_local_ip()
     actualizar_envs(local_ip)
-
-    # Vuelve a cargar las variables de entorno después de actualizar los .env
     from dotenv import load_dotenv
-
     load_dotenv()
-
     WS_HOST = os.getenv("WS_HOST", "localhost")
     WS_PORT = int(os.getenv("WS_PORT", 3000))
 
-    iniciar_servidores()
+    backend_proc, frontend_proc = iniciar_servidores()
 
     app = QApplication(sys.argv)
     window = MainWindow()
-    # Pasa la IP y puerto actualizados si lo deseas
+    window.backend_proc = backend_proc
+    window.frontend_proc = frontend_proc
     window.iniciar_servidor_websocket(WS_HOST, WS_PORT)
     window.show()
     sys.exit(app.exec_())
