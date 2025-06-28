@@ -635,6 +635,16 @@ class MainWindow(QWidget):
 
         print(f"✅ Factura generada con alto dinámico: {alto_mm} mm")
 
+    def closeEvent(self, event):
+        # Intenta terminar los procesos si existen
+        for proc in [getattr(self, "backend_proc", None), getattr(self, "frontend_proc", None)]:
+            if proc is not None:
+                try:
+                    proc.terminate()
+                except Exception:
+                    pass
+        event.accept()
+
 
 if __name__ == "__main__":
     local_ip = get_local_ip()
