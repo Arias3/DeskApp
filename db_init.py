@@ -1,7 +1,7 @@
 import mysql.connector
 from mysql.connector import errorcode
 
-DB_NAME = "mesapp_db"
+DB_NAME = "heladeria"
 
 TABLES = {
     "products": (
@@ -11,14 +11,15 @@ TABLES = {
         "  name VARCHAR(100) NOT NULL,"
         "  cost DECIMAL(10,2) NOT NULL,"
         "  price DECIMAL(10,2) NOT NULL,"
-        "  profitability VARCHAR(10),"
-        "  stock VARCHAR(50),"
+        "  profitability DECIMAL(10,2),"
+        "  stock DECIMAL(10,2),"
         "  barcode VARCHAR(50),"
         "  unit VARCHAR(20),"
         "  image_url VARCHAR(255),"
         "  flavor_count INT,"
-        "  description TEXT"
-        ") ENGINE=InnoDB"
+        "  description TEXT,"
+        "  categoria TEXT"
+        ") ENGINE=InnoDB;"
     ),
     "flavors": (
         "CREATE TABLE IF NOT EXISTS flavors ("
@@ -72,7 +73,9 @@ def crear_bd_y_tablas(host, user, password):
     print("Conectando a MySQL...")
     try:
         print("Intentando conectar a MySQL...")
-        cnx = mysql.connector.connect(host="localhost", user="root", password="Mesapp2025", connection_timeout=5)
+        cnx = mysql.connector.connect(
+            host="localhost", user="root", password="Mesapp2025", connection_timeout=5
+        )
         print("Conexión exitosa.")
         cursor = cnx.cursor()
         try:
