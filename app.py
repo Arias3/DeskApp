@@ -21,7 +21,9 @@ from PyQt5.QtGui import QIcon
 import winsound
 from dotenv import load_dotenv
 import os
+import platform
 import subprocess
+import signal
 
 WS_HOST = os.getenv("WS_HOST", "localhost")
 WS_PORT = int(os.getenv("WS_PORT", 3000))
@@ -155,6 +157,31 @@ def iniciar_servidores():
 
     return backend_proc, frontend_proc
 
+import platform
+import subprocess
+
+def kill_process_on_port(port):
+    system = platform.system()
+    try:
+        if system == "Windows":
+            # Buscar el PID del proceso que usa el puerto
+            result = subprocess.check_output(
+                f'netstat -ano | findstr :{port}', shell=True, encoding='utf-8'
+            )
+            for line in result.strip().split('\n'):
+                if f':{port} ' in line:
+                    pid = line.strip().split()[-1]
+                    subprocess.call(f'taskkill /PID {pid} /F', shell=True)
+        else:
+            # Linux/Mac
+            result = subprocess.check_output(
+                f'lsof -ti:{port}', shell=True, encoding='utf-8'
+            )
+            for pid in result.strip().split('\n'):
+                subprocess.call(f'kill -9 {pid}', shell=True)
+    except Exception as e:
+        print(f"No se pudo liberar el puerto {port} o ya estaba libre: {e}")
+
 
 class MainWindow(QWidget):
 
@@ -269,6 +296,49 @@ class MainWindow(QWidget):
         # --- CONTENEDOR DERECHO COMO LAYOUT ---
         self.right_layout = QVBoxLayout()
         self.right_layout.setAlignment(Qt.AlignCenter)  # Centra todo el contenido
+
+        # --- BOTÓN DE REINICIO DE SERVIDORES ---
+        restart_button = QPushButton("Reiniciar Servidores")
+        restart_button.setFixedSize(220, 44)
+        restart_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #F5A623;
+                color: #1F484E;
+                font-family: Inter;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 12px;
+            }
+            QPushButton:hover {
+                background-color: #FFD580;
+            }
+            """
+        )
+        def reiniciar_servidores():
+            # Detener procesos si existen
+            for proc in [getattr(self, "backend_proc", None), getattr(self, "frontend_proc", None)]:
+                if proc is not None:
+                    try:
+                        proc.terminate()
+                        try:
+                            proc.wait(timeout=5)
+                        except Exception:
+                            proc.kill()
+                    except Exception as e:
+                        print(f"Error al cerrar proceso: {e}")
+            # Liberar puertos
+            kill_process_on_port(5000)
+            kill_process_on_port(5173)
+            # Iniciar de nuevo
+            backend_proc, frontend_proc = iniciar_servidores()
+            self.backend_proc = backend_proc
+            self.frontend_proc = frontend_proc
+            print("🔄 Servidores reiniciados.")
+
+        restart_button.clicked.connect(reiniciar_servidores)
+        self.right_layout.addWidget(restart_button, alignment=Qt.AlignCenter)
+        self.right_layout.addSpacing(18)
 
         # Agregar label de selección de impresora
         printer_label = QLabel("Seleccione una impresora:")
@@ -560,7 +630,17 @@ class MainWindow(QWidget):
             print("Logo no encontrado, se omite.")
             y += 10
 
-        # ORDEN
+        # Número de MESA (primero y más grande)
+        painter.setFont(QFont("Courier New", 22, QFont.Bold))
+        mesa_text = f"{datos['Mesa']}"
+        mesa_rect = QRectF(0, y, ancho_papel, 9999)
+        painter.drawText(mesa_rect, Qt.AlignHCenter | Qt.TextWordWrap, mesa_text)
+        mesa_height = painter.boundingRect(
+            mesa_rect, Qt.AlignHCenter | Qt.TextWordWrap, mesa_text
+        ).height()
+        y += mesa_height + 10
+
+        # Número de ORDEN (debajo, más pequeño)
         painter.setFont(QFont("Courier New", 13, QFont.Bold))
         orden_text = f"ORDEN #{datos['numero']}"
         orden_rect = QRectF(0, y, ancho_papel, 9999)
@@ -579,16 +659,6 @@ class MainWindow(QWidget):
             fecha_hora_rect, Qt.AlignHCenter | Qt.TextWordWrap, fecha_hora
         ).height()
         y += fecha_hora_height + 6
-
-        # Solo el número de mesa
-        painter.setFont(QFont("Courier New", 16, QFont.Bold))
-        mesa_text = f"{datos['Mesa']}"
-        mesa_rect = QRectF(0, y, ancho_papel, 9999)
-        painter.drawText(mesa_rect, Qt.AlignHCenter | Qt.TextWordWrap, mesa_text)
-        mesa_height = painter.boundingRect(
-            mesa_rect, Qt.AlignHCenter | Qt.TextWordWrap, mesa_text
-        ).height()
-        y += mesa_height + 6
 
         # LINEA
         painter.drawLine(0, int(y), int(ancho_papel), int(y))
@@ -636,13 +706,25 @@ class MainWindow(QWidget):
         print(f"✅ Factura generada con alto dinámico: {alto_mm} mm")
 
     def closeEvent(self, event):
+        print("🔴 Cerrando aplicación...")
         # Intenta terminar los procesos si existen
-        for proc in [getattr(self, "backend_proc", None), getattr(self, "frontend_proc", None)]:
+        for proc in [
+            getattr(self, "backend_proc", None),
+            getattr(self, "frontend_proc", None),
+        ]:
             if proc is not None:
                 try:
+                    # Enviar señal de terminación
                     proc.terminate()
-                except Exception:
-                    pass
+                    try:
+                        proc.wait(timeout=5)
+                    except Exception:
+                        proc.kill()
+                except Exception as e:
+                    print(f"Error al cerrar proceso: {e}")
+        # Forzar cierre de cualquier proceso que use los puertos
+        kill_process_on_port(5000)
+        kill_process_on_port(5173)
         event.accept()
 
 
@@ -650,9 +732,14 @@ if __name__ == "__main__":
     local_ip = get_local_ip()
     actualizar_envs(local_ip)
     from dotenv import load_dotenv
+
     load_dotenv()
     WS_HOST = os.getenv("WS_HOST", "localhost")
     WS_PORT = int(os.getenv("WS_PORT", 3000))
+
+    # Liberar puertos antes de iniciar servidores
+    kill_process_on_port(5000)
+    kill_process_on_port(5173)
 
     backend_proc, frontend_proc = iniciar_servidores()
 
