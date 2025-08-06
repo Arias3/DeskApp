@@ -1,26 +1,27 @@
-# 🖥️ Sistema de Recepción de Pedidos - Cliente de Impresión (PyQt5)
+# 🖥️ Order Reception System - Print Client (PyQt5)
 
-Este proyecto es una aplicación de escritorio desarrollada en **Python** utilizando la librería **PyQt5** para la interfaz gráfica. Su función principal es actuar como cliente de impresión en un sistema de pedidos para restaurantes, comunicándose con una aplicación web (que posee su propio repositorio).
+This project is a desktop application developed in **Python** using the **PyQt5** library for the graphical user interface. Its main purpose is to act as a print client in a restaurant order management system, communicating with a web application (hosted in a separate repository).
 
-## 🚀 Funcionalidades
+## 🚀 Features
 
-- 🖨️ **Impresión automática de pedidos** recibidos desde la aplicación web mediante **WebSockets**.
-- 🔌 **Ejecución de servidores locales** necesarios para la comunicación entre sistemas.
-- 📎 **Selección de impresora** de 80mm desde la interfaz.
-- 🔄 **Reinicio manual de los servidores** con un solo clic.
-- 📱 **Generación automática de un código QR** para facilitar el acceso a la aplicación web desde otros dispositivos.
+- 🖨️ **Automatic printing of orders** received from the web application via **WebSockets**.
+- 🔌 **Execution of local servers** required for system communication.
+- 📎 **Printer selection** (80mm thermal printer) from the user interface.
+- 🔄 **Manual server restart** with a single click.
+- 📱 **Automatic QR code generation** to facilitate access to the web app from other devices.
 
-## 🌐 Aplicación Web
+## 🌐 Web Application
 
-> Este cliente está diseñado para trabajar en conjunto con una aplicación web para la toma de pedidos, la cual se encuentra en un **repositorio independiente**.
+> This client is designed to work in conjunction with a web-based order-taking application, which is hosted in a **separate repository**.
 
-## 🛠️ Tecnologías utilizadas
+## 🛠️ Technologies Used
 
 - **Python 3**
 - **PyQt5**
 - **WebSockets**
-- **QZ Tray / impresión directa**
-- **Servidor local (Flask, FastAPI o similar según implementación)**
+- **QZ Tray / Direct printing**
+- **Local server (Flask, FastAPI, or similar depending on the implementation)**
 
-## 📸 Interfaz y Acceso Rápido
-![INTERFAZ](./app.png)
+## 📸 Interface and Quick Access
+![INTERFACE](./app.png)
+
